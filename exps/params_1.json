@@ -1,7 +1,7 @@
 {
   "vocab": "data/vocab.pkl",
   "data": "data/chembl_24_chemreps.csv",
-  "out_dir": "output",
+  "out_dir": "exps/exp1",
   "name": "ST",
   "seq_len": 220,
   "hidden": 256,
@@ -12,5 +12,5 @@
   "test_size": 10000,
   "pred_loss_weight": 0.5,
   "rep_loss_weight": 0.5,
-  "history": "history.csv"
+  "history": "exps/exp1/history.csv"
 }

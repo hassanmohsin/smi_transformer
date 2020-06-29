@@ -15,6 +15,7 @@ from .dataset import Seq2seqDatasetProp
 from .models import TrfmSeq2seqProp2
 from .hyperparameters import load_params
 from torchsummaryX import summary
+import os
 
 PAD = 0
 UNK = 1
@@ -83,6 +84,8 @@ def main():
     params = load_params(args['params'])
     params.update(args)
     print(params)
+
+    os.makedirs(params["out_dir"])
 
     assert torch.cuda.is_available()
 
@@ -189,7 +192,7 @@ def main():
         scheduler.step()
 
     pd.DataFrame.from_records(losses, columns=[
-        'train_rep_loss', 'train_pred_loss', 'train_loss', 'eval_rep_loss', 'eval_pred_loss', 'eval_loss']).to_csv(params["history"], index=None)
+        'train_rep_loss', 'train_pred_loss', 'train_loss', 'eval_rep_loss', 'eval_pred_loss', 'eval_loss']).to_csv(os.path.join(params["out_dir"], params["history"]), index=None)
 
 
 if __name__ == "__main__":
