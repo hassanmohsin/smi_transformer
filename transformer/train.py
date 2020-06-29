@@ -119,7 +119,7 @@ def main():
     best_loss = None
     losses = []
     print('[INFO] Training the model...')
-    for e in range(1, params["n_epoch"]):
+    for e in range(1, params["epochs"]):
         for b, (sm, prop) in tqdm(enumerate(train_loader)):
             sm = sm.cuda()  # (T,B)
             prop = prop.cuda()  # logP, qed and sas values (dataset class is calling in this order)
