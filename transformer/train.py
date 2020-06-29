@@ -62,6 +62,10 @@ def main():
     parser = argparse.ArgumentParser(description="Train the transformer model")
     parser.add_argument("--params", type=str,
                         required=True, help="file for hyperparameters (.json)")
+    parser.add_argument("--epochs",
+                        type=int,
+                        default=50,
+                        help="epochs")
     parser.add_argument("--batch_size",
                         type=int,
                         default=8,

@@ -1,0 +1,16 @@
+{
+  "vocab": "data/vocab.pkl",
+  "data": "data/chembl_24_chemreps.csv",
+  "out_dir": "output",
+  "name": "ST",
+  "seq_len": 220,
+  "hidden": 256,
+  "n_layer": 4, 
+  "n_head": 4,
+  "lr": 1e-4,
+  "transform": true,
+  "test_size": 10000,
+  "pred_loss_weight": 0.5,
+  "rep_loss_weight": 0.5,
+  "history": "history.csv"
+}
