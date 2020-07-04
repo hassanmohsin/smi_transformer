@@ -63,10 +63,6 @@ def main():
     parser = argparse.ArgumentParser(description="Train the transformer model")
     parser.add_argument("--params", type=str,
                         required=True, help="file for hyperparameters (.json)")
-    parser.add_argument("--epochs",
-                        type=int,
-                        default=50,
-                        help="epochs")
     parser.add_argument("--batch_size",
                         type=int,
                         default=8,
@@ -91,8 +87,7 @@ def main():
 
     print("[INFO] Loading dataset...")
     vocab = WordVocab.load_vocab(params["vocab"])
-    dataset = Seq2seqDatasetProp(pd.read_csv(
-        params["data"]), vocab, seq_len=params["seq_len"], transform=params["transform"])
+    dataset = Seq2seqDatasetProp(params, vocab)
     test_size = params["test_size"]
     train, test = torch.utils.data.random_split(
         dataset, [len(dataset) - test_size, test_size])

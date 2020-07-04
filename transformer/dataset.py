@@ -5,8 +5,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from .enumerator import SmilesEnumerator
 from .utils import split
-
-PAD = 0
+from .build_vocab import WordVocab
 
 
 class Randomizer(object):
@@ -59,12 +58,15 @@ class Seq2seqDataset(Dataset):
 
 
 class Seq2seqDatasetProp(Dataset):
-    def __init__(self, df, vocab, seq_len=220, transform=True):
-        self.smiles = df['canonical_smiles'].values
-        self.props = df[['logP', 'qed', 'sas']].values
+    def __init__(self, params, vocab):
+        self.vocab = WordVocab.load_vocab(params["vocab"])
+        self.df = pd.read_csv(params['data'])
+        self.smiles = self.df[params['smiles_col']].values
+        self.props = self.df[params['props']].values
         self.vocab = vocab
-        self.seq_len = seq_len
-        self.transform = Randomizer(seq_len=self.seq_len)
+        self.seq_len = params['seq_len']
+        if params['transform']:
+            self.transform = Randomizer(seq_len=self.seq_len)
 
     def __len__(self):
         return len(self.smiles)
@@ -72,7 +74,7 @@ class Seq2seqDatasetProp(Dataset):
     def __getitem__(self, item):
         sm = self.smiles[item]
         prop = self.props[item].tolist()
-        if self.transform is not None:
+        if self.transform:
             sm = self.transform(sm)  # List
         content = [
             self.vocab.stoi.get(token, self.vocab.unk_index) for token in sm
