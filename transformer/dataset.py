@@ -78,10 +78,9 @@ class Seq2seqDatasetProp(Dataset):
         content = [
             self.vocab.stoi.get(token, self.vocab.unk_index) for token in sm
         ]
-        X = [self.vocab.sos_index] + content + [self.vocab.eos_index]
+        X = [self.vocab.sos_index] + content[:self.seq_len-2] + [self.vocab.eos_index] # restrict content to self.seq_len-2
         padding = [self.vocab.pad_index] * (self.seq_len - len(X))
         X.extend(padding)
-        assert len(
-            X) == self.seq_len, f"Invalid length of X, {len(X)} instead of {self.seq_len}. Content length is {len(content)}"
+        assert len(X) == self.seq_len, f"Invalid length of X, {len(X)} instead of {self.seq_len}. Content length is {len(content)}"
         assert len(prop) == 3, f"Invalid length of Y, {len(prop)} instead of 3"
         return torch.tensor(X), torch.tensor(prop)
