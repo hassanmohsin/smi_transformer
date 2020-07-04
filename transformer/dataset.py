@@ -65,8 +65,7 @@ class Seq2seqDatasetProp(Dataset):
         self.props = self.df[params['props']].values
         self.vocab = vocab
         self.seq_len = params['seq_len']
-        if params['transform']:
-            self.transform = Randomizer(seq_len=self.seq_len)
+        self.transform = Randomizer(seq_len=self.seq_len) if params['transform'] else False
 
     def __len__(self):
         return len(self.smiles)
