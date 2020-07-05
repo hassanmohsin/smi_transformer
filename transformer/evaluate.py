@@ -10,42 +10,102 @@ from transformer.dataset import Seq2seqDatasetProp
 from transformer.build_vocab import WordVocab
 import json
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+import sys
+import joblib
 
 torch.manual_seed(0)
+
+
+if len(sys.argv) != 4:
+    print("Usage: python -m transformer.evaluate <param_file> <test_data> <model_file>")
+    sys.exit()
+
+PARAMS = sys.argv[1]
+TESTDATA = sys.argv[2]
+MODELFILE = sys.argv[3]
 
 assert torch.cuda.is_available()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 
-params = json.load(open("exp_params/params_4.json"))
-params['data'] = "data/250k_rndm_zinc_drugs_clean_3_scaled.csv"
-vocab = WordVocab.load_vocab('data/vocab.pkl')
-test_size = params['test_size']
-dataset = Seq2seqDatasetProp(params, vocab)
-batch_size = 1024
-test_loader = DataLoader(dataset, batch_size = batch_size, num_workers=56, shuffle=False)
-
+params = json.load(open(PARAMS))
+vocab = WordVocab.load_vocab(params['vocab'])
 
 model = TrfmSeq2seqProp2(len(vocab), params['hidden'], len(vocab), params['n_layer'])
-model.load_state_dict(torch.load("exps/exp4/ST_48_1767-0.003617.pkl"))
+model.load_state_dict(torch.load(MODELFILE))
 model = nn.DataParallel(model)
 model.to(device)
 model.eval()
 
-ytrue = np.empty((len(dataset), 3), np.float32)
-ypred = np.empty_like(ytrue, np.float32)
+# Load the scaler
+scaler = joblib.load("data/scaler.pkl")
 
-print(f"Evaluating {params['data']}...")
-with torch.no_grad():
-    for i, (x, y) in enumerate(tqdm(test_loader)):
-        _, pred = model(x.to(device))
-        for p, q in zip(y, pred):
-            ytrue[i*batch_size:i*batch_size+batch_size] = p.cpu().numpy()
-            ypred[i*batch_size:i*batch_size+batch_size] = q.cpu().numpy()
+def get_metrics():
+    # Evaluate test data
+    batch_size = params['batch_size']
+    dataset = Seq2seqDatasetProp(params, vocab)
+
+    _, test = torch.utils.data.random_split(
+                    dataset, [len(dataset) - params['test_size'], params['test_size']])
     
-#"logP", "qed", "sas"
-mae = [mean_absolute_error(ytrue[:, i], ypred[:, i]) for i in range(3)]
-rmse = [np.sqrt(mean_squared_error(ytrue[:, i], ypred[:, i])) for i in range(3)]
-print(f"VALUES: {params['props']}")
-print(f"MEAN ABSOLUTE ERROR: {mae}")
-print(f"ROOT MEAN SQUARED ERROR: {rmse}")
+    test_loader = DataLoader(test, batch_size=batch_size, shuffle=False, num_workers=56)
+    ytrue = np.empty((len(test), 3), np.float32)
+    ypred = np.empty_like(ytrue, np.float32)
+    
+    print(f"Evaluating {params['data']}...")
+    with torch.no_grad():
+        for i, (x, y) in enumerate(tqdm(test_loader)):
+            _, pred = model(x.to(device))
+            ytrue[i*batch_size:i*batch_size+batch_size] = y.numpy()
+            ypred[i*batch_size:i*batch_size+batch_size] = pred.cpu().numpy()
+    
+    #"logP", "qed", "sas"
+    # Inverse transform
+    ytrue = scaler.inverse_transform(ytrue)
+    ypred = scaler.inverse_transform(ypred)
+    mae = [mean_absolute_error(ytrue[:, i], ypred[:, i]) for i in range(3)]
+    rmse = [np.sqrt(mean_squared_error(ytrue[:, i], ypred[:, i])) for i in range(3)]
 
+    print(f"VALUES: {params['props']}")
+    print(f"MEAN ABSOLUTE ERROR: {mae}")
+    print(f"ROOT MEAN SQUARED ERROR: {rmse}")
+
+    print("--------------------------------")
+
+    # Evaluate zinc data
+    params['data'] = TESTDATA # replace the training data file with the test data file
+    dataset = Seq2seqDatasetProp(params, vocab)
+    test_loader = DataLoader(dataset, batch_size = batch_size, num_workers=56, shuffle=False)
+    ytrue = np.empty((len(dataset), 3), np.float32)
+    ypred = np.empty_like(ytrue, np.float32)
+
+    print(f"Evaluating {params['data']}...")
+    with torch.no_grad():
+        for i, (x, y) in enumerate(tqdm(test_loader)):
+            _, pred = model(x.to(device))
+            ytrue[i*batch_size:i*batch_size+batch_size] = y.numpy()
+            ypred[i*batch_size:i*batch_size+batch_size] = pred.cpu().numpy()
+    
+    #"logP", "qed", "sas"
+    # Inverse transform
+    ytrue = scaler.inverse_transform(ytrue)
+    ypred = scaler.inverse_transform(ypred)
+    mae = [mean_absolute_error(ytrue[:, i], ypred[:, i]) for i in range(3)]
+    rmse = [np.sqrt(mean_squared_error(ytrue[:, i], ypred[:, i])) for i in range(3)]
+    print(f"VALUES: {params['props']}")
+    print(f"MEAN ABSOLUTE ERROR: {mae}")
+    print(f"ROOT MEAN SQUARED ERROR: {rmse}")
+
+
+def encode():
+    output = np.empty((len(dataset), 1024), dtype=np.float32)
+    with torch.no_grad():
+        for i, (x, y) in enumerate(tqdm(test_loader)):
+            _encoder = model.module._encode(x.to(device))
+            output[i*batch_size:i*batch_size+batch_size] = _encoder
+    np.save('encoded', output)
+    print("Encoded representations are saved to encoded.npy")
+
+
+if __name__=="__main__":
+    get_metrics()
+    #encode()
