@@ -8,7 +8,7 @@ from torch import nn
 from torch import optim
 from torch.nn import functional as F
 from torch.autograd import Variable
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 from .build_vocab import WordVocab
 from .dataset import Seq2seqDatasetProp
@@ -61,9 +61,9 @@ def evaluate(params, model, test_loader, vocab):
 
 def main():
     parser = argparse.ArgumentParser(description="Train the transformer model")
-    parser.add_argument("--params", type=str,
-                        required=True, help="file for hyperparameters (.json)")
-    parser.add_argument("--batch_size",
+    parser.add_argument("--exp_dir", "-e", type=str,
+                        required=True, help="Experiment directory")
+    parser.add_argument("--batch_size", "-b",
                         type=int,
                         default=8,
                         help="batch size")
@@ -77,20 +77,25 @@ def main():
                         nargs="+",
                         help="list of GPU IDs to use")
     args = vars(parser.parse_args())
-    params = load_params(args['params'])
+    json_file = os.path.join(args['exp_dir'], 'params.json')
+    assert os.path.isfile(json_file)
+    params = load_params(json_file)
     params.update(args)
-    print(params)
-
-    os.makedirs(params["out_dir"])
+    print(f"Training parameters: {params}")
 
     assert torch.cuda.is_available()
 
     print("[INFO] Loading dataset...")
     vocab = WordVocab.load_vocab(params["vocab"])
+    test_idx = np.load("data/test_idx.npy")
     dataset = Seq2seqDatasetProp(params, vocab)
-    test_size = params["test_size"]
-    train, test = torch.utils.data.random_split(
-        dataset, [len(dataset) - test_size, test_size])
+    train_idx = np.delete(np.arange(len(dataset)), test_idx)
+    train = Subset(dataset, train_idx)
+    test = Subset(dataset, test_idx)
+    print(f"Training data: {len(train)}, Test data: {len(test)}")
+    #test_size = params["test_size"]
+    #train, test = torch.utils.data.random_split(
+    #    dataset, [len(dataset) - test_size, test_size])
     train_loader = DataLoader(train,
                               batch_size=params["batch_size"],
                               shuffle=True,
@@ -172,12 +177,12 @@ def main():
         # Save the model if the validation loss is the best we've seen so far.
         if not best_loss or eval_total_loss < best_loss:
             print("[INFO] Saving model...")
-            if not os.path.isdir(params["out_dir"]):
-                os.makedirs(params["out_dir"])
+            if not os.path.isdir(params["exp_dir"]):
+                os.makedirs(params["exp_dir"])
             torch.save(
                 model.module.state_dict(),
                 "./%s/%s_%d_%d-%f.pkl" %
-                (params["out_dir"], params["name"], e, b, eval_total_loss),
+                (params["exp_dir"], params["name"], e, b, eval_total_loss),
             )
             best_loss = eval_total_loss
 
@@ -187,7 +192,7 @@ def main():
         scheduler.step()
 
     pd.DataFrame.from_records(losses, columns=[
-        'train_rep_loss', 'train_pred_loss', 'train_loss', 'eval_rep_loss', 'eval_pred_loss', 'eval_loss']).to_csv(os.path.join(params["out_dir"], params["history"]), index=None)
+        'train_rep_loss', 'train_pred_loss', 'train_loss', 'eval_rep_loss', 'eval_pred_loss', 'eval_loss']).to_csv(os.path.join(params["exp_dir"], params["history"]), index=None)
 
 
 if __name__ == "__main__":

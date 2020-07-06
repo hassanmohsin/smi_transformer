@@ -1,0 +1,20 @@
+{
+  "n_epochs": 200,
+  "batch_size": 1024,
+  "vocab": "data/vocab.pkl",
+  "data": "data/chembl_24_chemreps_processed_scaled.csv",
+  "smiles_col": "canonical_smiles",
+  "props": ["logP", "qed", "sas"],
+  "out_dir": "exps/exp4",
+  "name": "ST",
+  "seq_len": 220,
+  "hidden": 256,
+  "n_layer": 4, 
+  "n_head": 4,
+  "lr": 1e-4,
+  "transform": false,
+  "test_size": 10000,
+  "pred_loss_weight": 0.5,
+  "rep_loss_weight": 0.5,
+  "history": "history.csv"
+}

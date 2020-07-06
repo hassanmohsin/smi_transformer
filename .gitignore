@@ -132,4 +132,5 @@ output/
 
 # data directory
 data/
-exps/
+*.pkl
+others/
