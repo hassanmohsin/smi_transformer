@@ -1,7 +1,7 @@
 {
   "epochs": 200,
   "vocab": "data/vocab.pkl",
-  "data": "data/250k_rndm_zinc_drugs_clean_3_normalized.csv",
+  "data": "data/250k_rndm_zinc_drugs_clean_3_normalized.csv.gz",
   "smiles_col": "canonical_smiles",
   "props": ["logP", "qed", "sas"],
   "name": "ST",
