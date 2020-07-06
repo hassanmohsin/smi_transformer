@@ -1,7 +1,7 @@
 {
   "n_epochs": 200,
   "batch_size": 1024,
-  "vocab": "data/vocab.pkl",
+  "vocab": "data/vocab_chembl24.pkl",
   "data": "data/chembl_24_chemreps_processed_scaled.csv",
   "smiles_col": "canonical_smiles",
   "props": ["logP", "qed", "sas"],

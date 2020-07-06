@@ -189,7 +189,7 @@ def main():
         # Log the losses
         losses.append([reproduction_loss.item(), pred_loss.item(), loss.item(),
                        eval_rep_loss, eval_pred_loss, eval_total_loss])
-        scheduler.step()
+        #scheduler.step()
 
     pd.DataFrame.from_records(losses, columns=[
         'train_rep_loss', 'train_pred_loss', 'train_loss', 'eval_rep_loss', 'eval_pred_loss', 'eval_loss']).to_csv(os.path.join(params["exp_dir"], params["history"]), index=None)
