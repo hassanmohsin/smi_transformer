@@ -134,3 +134,6 @@ output/
 data/
 *.pkl
 others/
+
+# IDE files
+.idea/
