@@ -14,7 +14,7 @@ class Randomizer(object):
         self.sme = SmilesEnumerator()
 
     def __call__(self, sm):
-        sm_r = self.sme.randomize_smiles(sm)  # Random transoform
+        sm_r = self.sme.randomize_smiles(sm)  # Random transform
         if sm_r is None:
             sm_spaced = split(sm)  # Spacing
         else:
@@ -27,11 +27,11 @@ class Randomizer(object):
             return sm_split[:self.seq_len-2]
 
     def random_transform(self, sm):
-        '''
+        """
         function: Random transformation for SMILES. It may take some time.
         input: A SMILES
         output: A randomized SMILES
-        '''
+        """
         return self.sme.randomize_smiles(sm)
 
 

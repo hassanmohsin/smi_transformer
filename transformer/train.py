@@ -1,21 +1,22 @@
 import argparse
-import os
 import math
+import os
+
 import numpy as np
 import pandas as pd
 import torch
 from torch import nn
 from torch import optim
-from torch.nn import functional as F
 from torch.autograd import Variable
+from torch.nn import functional as F
 from torch.utils.data import DataLoader, Subset
+from torchsummaryX import summary
 from tqdm import tqdm
+
 from .build_vocab import WordVocab
 from .dataset import Seq2seqDatasetProp
-from .models import TrfmSeq2seqProp2
 from .hyperparameters import load_params
-from torchsummaryX import summary
-import os
+from .models import TrfmSeq2seqProp2
 
 PAD = 0
 UNK = 1
@@ -47,7 +48,7 @@ def evaluate(params, model, test_loader, vocab):
                      F.mse_loss(prop[:, 1], ppred[:, 1]) +
                      F.mse_loss(prop[:, 2], ppred[:, 2]))
         loss = params["rep_loss_weight"] * reproduction_loss + \
-            params["pred_loss_weight"] * pred_loss
+               params["pred_loss_weight"] * pred_loss
         total_reproduction_loss += reproduction_loss.item()
         total_pred_loss += pred_loss.item()
         total_loss += loss.item()
@@ -93,8 +94,8 @@ def main():
     train = Subset(dataset, train_idx)
     test = Subset(dataset, test_idx)
     print(f"Training data: {len(train)}, Test data: {len(test)}")
-    #test_size = params["test_size"]
-    #train, test = torch.utils.data.random_split(
+    # test_size = params["test_size"]
+    # train, test = torch.utils.data.random_split(
     #    dataset, [len(dataset) - test_size, test_size])
     train_loader = DataLoader(train,
                               batch_size=params["batch_size"],
@@ -146,14 +147,14 @@ def main():
                          F.mse_loss(prop[:, 1], ppred[:, 1]) +
                          F.mse_loss(prop[:, 2], ppred[:, 2]))
             loss = params["rep_loss_weight"] * reproduction_loss + \
-                params["pred_loss_weight"] * pred_loss
+                   params["pred_loss_weight"] * pred_loss
 
             loss.backward()
             optimizer.step()
             if b % 100 == 0:
                 print(
                     "Train {:3d}: iter {:5d} | pred. loss {:.3f} | rep. loss {:.3f} | total loss {:.3f} | ppl {:.3f}"
-                    .format(
+                        .format(
                         e,
                         b,
                         pred_loss.item(),
@@ -166,7 +167,7 @@ def main():
                                                                   model, test_loader, vocab)
         print(
             "Val {:3d}: iter {:5d} | pred. loss {:.3f} | rep. loss {:.3f} | total loss {:.3f} | ppl {:.3f}"
-            .format(
+                .format(
                 e,
                 b,
                 eval_pred_loss,
@@ -189,10 +190,18 @@ def main():
         # Log the losses
         losses.append([reproduction_loss.item(), pred_loss.item(), loss.item(),
                        eval_rep_loss, eval_pred_loss, eval_total_loss])
-        #scheduler.step()
+        # scheduler.step()
 
-    pd.DataFrame.from_records(losses, columns=[
-        'train_rep_loss', 'train_pred_loss', 'train_loss', 'eval_rep_loss', 'eval_pred_loss', 'eval_loss']).to_csv(os.path.join(params["exp_dir"], params["history"]), index=None)
+    pd.DataFrame.from_records(losses,
+                              columns=[
+                                  'train_rep_loss',
+                                  'train_pred_loss',
+                                  'train_loss',
+                                  'eval_rep_loss',
+                                  'eval_pred_loss',
+                                  'eval_loss'
+                              ]).to_csv(
+        os.path.join(params["exp_dir"], params["history"]), index=False)
 
 
 if __name__ == "__main__":

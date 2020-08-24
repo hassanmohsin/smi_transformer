@@ -1,11 +1,12 @@
-from .build_vocab import WordVocab
-import pandas as pd
-import hiddenlayer as hl
-from torchsummaryX import summary
-from .models import TrfmSeq2seqProp2
-import torch
 import argparse
 
+import hiddenlayer as hl
+import pandas as pd
+import torch
+from torchsummaryX import summary
+
+from .build_vocab import WordVocab
+from .models import TrfmSeq2seqProp2
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Hyperparams")
@@ -33,4 +34,4 @@ if __name__ == "__main__":
                              len(vocab), args.n_layer)
     print(model)
     print(summary(model, torch.zeros(args.batch_size, args.seq_len).long()))
-    print(len(vocab)) 
+    print(len(vocab))

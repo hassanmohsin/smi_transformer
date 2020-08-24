@@ -1,18 +1,20 @@
-import torch
 import math
+
+import torch
 import torch.nn as nn
 from rdkit import Chem
 from rdkit import rdBase
+
 rdBase.DisableLog('rdApp.*')
 
 
 # Split SMILES into words
 def split(sm):
-    '''
+    """
     function: Split SMILES into words. Care for Cl, Br, Si, Se, Na etc.
     input: A SMILES
     output: A string with space between words
-    '''
+    """
     arr = []
     i = 0
     while i < len(sm) - 1:
@@ -180,7 +182,7 @@ class SublayerConnection(nn.Module):
         return x + self.dropout(sublayer(self.norm(x)))
 
 
-# Sample SMILES from probablistic distribution
+# Sample SMILES from probabilistic distribution
 def sample(msms):
     ret = []
     for msm in msms:

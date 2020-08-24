@@ -1,4 +1,5 @@
 import argparse
+
 import pandas as pd
 from tqdm import tqdm
 
@@ -20,7 +21,7 @@ def main():
     parser.add_argument('--sep',
                         type=str,
                         default=',',
-                        help='Column seperator for the csv file')
+                        help='Column separator for the csv file')
     parser.add_argument('--out_path',
                         '-o',
                         type=str,
@@ -28,7 +29,7 @@ def main():
                         help='output file')
     args = parser.parse_args()
 
-    #smiles = pd.read_csv(args.in_path, sep=args.sep)[args.smiles_column].values
+    # smiles = pd.read_csv(args.in_path, sep=args.sep)[args.smiles_column].values
     tqdm.pandas()
     df = pd.read_csv(args.in_path, sep=args.sep)
     print(f"INFO: {len(df)} samples in the dataset.")
